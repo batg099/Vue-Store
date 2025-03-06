@@ -21,8 +21,9 @@ const routes = [
   }
 ];
 
+// Ne pas oublier de mettre le nom du depot Git ('Vue-Store dans mon cas')
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('Vue-Store'),
   routes
 });
 
