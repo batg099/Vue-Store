@@ -1,7 +1,8 @@
 <script setup lang="ts">
 //import HelloWorld from './components/HelloWorld.vue'
 //import Navbar from './components/Navbar.vue'
-
+import Menu from './components/Menu.vue'
+import Footer from './components/Footer.vue'
 //import Login from './components/Login.vue'
 //import Register from './views/Register.vue'
 import './style.css';  // Si ton fichier style.css est dans le même répertoire
@@ -11,7 +12,8 @@ import test from "./components/test.vue"
 
 <template>
 <test/>
-
+<Menu />
+<Footer />
 <RouterView/>
   
   
