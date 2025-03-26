@@ -30,7 +30,7 @@
         <h3 class="footer-heading">MODES DE PAIEMENT</h3>
         <ul class="footer-list">
           <li>
-            <img src="./src/assets/paypal.png" alt="PayPal" class="payment-image" />
+            <img src="@/assets/paypal.png" alt="PayPal" class="payment-image" />
           </li>
           <li>
             <img src="./assets/visa.png" alt="VISA" class="payment-image" />

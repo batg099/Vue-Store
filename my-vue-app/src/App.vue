@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import Footer from './components/Footer.vue';
+import ProductPage from './components/ProductPage.vue';
 </script>
 
 <template>
   <div class="app">
-    <!-- Your other content -->
+    <main>
+        <ProductPage />
+    </main>
     <Footer />
   </div>
 </template>
@@ -12,11 +15,13 @@ import Footer from './components/Footer.vue';
 <script lang="ts">
 import { defineComponent } from 'vue';
 import Footer from './components/Footer.vue';
+import ProductPage from './components/ProductPage.vue';
 
 export default defineComponent({
   name: 'App',
   components: {
     Footer,
+    ProductPage
   },
 });
 </script>
