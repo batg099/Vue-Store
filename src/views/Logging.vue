@@ -32,7 +32,7 @@ function register() {
             <img class="size-1/4 mx-auto mb-4" src="../assets/gwen.jpg" alt="gwen" />
           </RouterLink>
           
-          <h1 class="text-xl font-bold mb-4">Register</h1>
+          <h1  class="text-xl font-bold mb-4">Register</h1>
           <p class="mb-3"><input type="text" placeholder="Email" v-model="email" class="w-full p-2 border rounded" /></p>
           <p class="mb-3"><input type="password" placeholder="Password" v-model="password" class="w-full p-2 border rounded" /></p>
           <p><button type="submit" class="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">Submit</button></p>

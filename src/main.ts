@@ -1,6 +1,9 @@
 import { createApp } from 'vue'
 import App from './App.vue' // Assure-toi d'importer ton composant principal
-import './style.css'  // Fichier global de styles, souvent lié à Tailwind ou d'autres styles globaux
+
+//import './style.css'  // Fichier global de styles, souvent lié à Tailwind ou d'autres styles globaux
+
+
 // Import des fichiers CSS de PrimeVue
 import ToastService from 'primevue/toastservice';  // Import ToastService
 

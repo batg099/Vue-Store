@@ -1,43 +1,57 @@
 <script setup>
-    import logo from "../assets/gwen.jpg"
-    import Button from "primevue/button"
+import { ref } from "vue";
+import { useRouter } from "vue-router"; // pour naviguer
+import Menubar from 'primevue/menubar';
+
+// Styles de base de PrimeVue
+import 'primevue/resources/themes/lara-light-indigo/theme.css'; // thème (choisissez celui qui vous convient)
+import 'primevue/resources/primevue.min.css'; // core css
+import 'primeicons/primeicons.css'; // icons
+
+const router = useRouter(); // pour naviguer entre les pages
+
+const out = () => {
+    console.log("Salut");
+    auth.signOut();
+}
+const items = ref([
+    {
+        label: 'Home',
+        icon: 'pi pi-home',
+        command: () => router.push('/') // Utilisez une fonction pour la navigation
+    },
+    {
+        label: 'Features',
+        icon: 'pi pi-star',
+        command: () => router.push('/features') // Exemple de navigation vers une page de fonctionnalités
+    },
+    {
+        label: 'Projects',
+        icon: 'pi pi-search',
+        items: [
+            {
+                label: 'Components',
+                icon: 'pi pi-bolt',
+                command: () => router.push('/projects/components')
+            },
+            {
+                label: 'Blocks',
+                icon: 'pi pi-server',
+                command: () => router.push('/projects/blocks')
+            }
+        ]
+    },
+    {
+        label: 'Login',
+        icon: 'pi pi-envelope',
+        command: () => router.push('/logging')
+    }
+]);
+
 </script>
 
 <template>
-  <nav class="bg-blue-500 p-4">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-      <!-- Logo -->
-      <div class="text-white text-2xl font-semibold">
-        <a href="#">MyLogo</a>
-      </div>
-
-      <!-- Menu principal -->
-      <div class="hidden md:flex space-x-6">
-        <a href="#" class="text-white hover:text-gray-300">Home</a>
-        <a href="#" class="text-white hover:text-gray-300">About</a>
-        <a href="#" class="text-white hover:text-gray-300">Services</a>
-        <a href="#" class="text-white hover:text-gray-300">Contact</a>
-        <img v-bind:src="logo">
-      </div>
-
-      <!-- Menu mobile -->
-      <div class="md:hidden">
-        <button @click="toggleMenu" class="text-white">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-6 h-6">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-          </svg>
-        </button>
-      </div>
+    <div class="fixed top-0 left-0 right-0  ">
+        <Menubar :model="items" :style="{ backgroundColor: 'white' }" />
     </div>
-
-    <!-- Menu mobile (affiché lorsqu'il est activé) -->
-    <div v-if="isMenuOpen" class="md:hidden bg-blue-500 p-4 space-y-4">
-      <a href="#" class="text-white hover:text-gray-300 block">Home</a>
-      <a href="#" class="text-white hover:text-gray-300 block">About</a>
-      <a href="#" class="text-white hover:text-gray-300 block">Services</a>
-      <a href="#" class="text-white hover:text-gray-300 block">Contact</a>
-    </div>
-  </nav>
-  <InputText>hey</InputText>
-  <button >Test</button>
 </template>
