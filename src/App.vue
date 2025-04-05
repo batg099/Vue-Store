@@ -3,6 +3,7 @@
 //import Navbar from './components/Navbar.vue'
 import Menu from './components/Menu.vue'
 import Footer from './components/Footer.vue'
+import Vague from './components/Vague.vue'
 //import Login from './components/Login.vue'
 //import Register from './views/Register.vue'
 import './style.css';  // Si ton fichier style.css est dans le même répertoire
@@ -15,6 +16,7 @@ import test from "./components/test.vue"
 <Menu />
 <Footer />
 <RouterView/>
+<Vague />
   
   
   
