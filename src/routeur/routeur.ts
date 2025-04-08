@@ -3,6 +3,8 @@ import Home from '../views/Home.vue';
 import Signing from '../views/Signing.vue';
 import Logging from '../views/Logging.vue';
 import First from '../components/First.vue';
+import Product from '../components/ProductPage.vue'
+import test_menu from '../components/test_menu.vue'
 
 
 const routes = [
@@ -25,6 +27,16 @@ const routes = [
     path: '/first',
     name: 'first',
     component: First
+  },
+  {
+    path: '/product',
+    name: 'product',
+    component: Product
+  },
+  {
+    path: '/test',
+    name: 'test',
+    component: test_menu
   }
 ];
 

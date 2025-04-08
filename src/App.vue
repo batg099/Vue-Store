@@ -6,7 +6,8 @@
 //import Register from './views/Register.vue'
 
 //import './style.css';  // Si ton fichier style.css est dans le même répertoire
-import routeur from "./routeur/routeur"
+import Upload from "./components/Upload.vue";
+
 
 </script>
 
