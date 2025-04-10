@@ -1,57 +1,64 @@
-<script setup>
-import { ref } from "vue";
-import { useRouter } from "vue-router"; // pour naviguer
-import Menubar from 'primevue/menubar';
-
-// Styles de base de PrimeVue
-import 'primevue/resources/themes/lara-light-indigo/theme.css'; // thème (choisissez celui qui vous convient)
-import 'primevue/resources/primevue.min.css'; // core css
-import 'primeicons/primeicons.css'; // icons
-
-const router = useRouter(); // pour naviguer entre les pages
-
-const out = () => {
-    console.log("Salut");
-    auth.signOut();
-}
-const items = ref([
-    {
-        label: 'Home',
-        icon: 'pi pi-home',
-        command: () => router.push('/') // Utilisez une fonction pour la navigation
-    },
-    {
-        label: 'Features',
-        icon: 'pi pi-star',
-        command: () => router.push('/features') // Exemple de navigation vers une page de fonctionnalités
-    },
-    {
-        label: 'Projects',
-        icon: 'pi pi-search',
-        items: [
-            {
-                label: 'Components',
-                icon: 'pi pi-bolt',
-                command: () => router.push('/projects/components')
-            },
-            {
-                label: 'Blocks',
-                icon: 'pi pi-server',
-                command: () => router.push('/projects/blocks')
-            }
-        ]
-    },
-    {
-        label: 'Login',
-        icon: 'pi pi-envelope',
-        command: () => router.push('/logging')
-    }
-]);
-
-</script>
-
 <template>
-    <div class="fixed top-0 left-0 right-0  ">
-        <Menubar :model="items" :style="{ backgroundColor: 'white' }" />
-    </div>
-</template>
+    <nav ref="navbar" class="navbar" :class="{ 'navbar-scrolled': scrolled }">
+      <div class="container navbar-container">
+        <div class="logo">GWEN</div>
+        <div class="nav-links">
+          <a href="#" class="nav-link">Accueil</a>
+          <a href="#" class="nav-link">Collection</a>
+          <a href="#" class="nav-link">Lookbook</a>
+          <a href="#" class="nav-link">Nouveautés</a>
+          <a href="#" class="nav-link">Contact</a>
+        </div>
+        <div class="nav-icons">
+          <a href="#" class="icon-link">
+            <span class="material-icons">search</span>
+          </a>
+          <a href="#" class="icon-link">
+            <span class="material-icons">shopping_bag</span>
+          </a>
+          <a href="#" class="icon-link">
+            <span class="material-icons">person_outline</span>
+          </a>
+        </div>
+        <button class="mobile-menu-btn" @click="toggleMobileMenu">
+          <span class="material-icons">{{ mobileMenuOpen ? 'close' : 'menu' }}</span>
+        </button>
+      </div>
+      <div class="mobile-menu" :class="{ 'mobile-menu-open': mobileMenuOpen }">
+        <a href="#" class="mobile-nav-link">Accueil</a>
+        <a href="#" class="mobile-nav-link">Collection</a>
+        <a href="#" class="mobile-nav-link">Lookbook</a>
+        <a href="#" class="mobile-nav-link">Nouveautés</a>
+        <a href="#" class="mobile-nav-link">Contact</a>
+      </div>
+    </nav>
+  </template>
+  
+  <script setup>
+  import { ref, onMounted, onBeforeUnmount } from 'vue';
+  
+  const navbar = ref(null);
+  const scrolled = ref(false);
+  const mobileMenuOpen = ref(false);
+  
+  const checkScroll = () => {
+    if (window.scrollY > 50) {
+      scrolled.value = true;
+    } else {
+      scrolled.value = false;
+    }
+  };
+  
+  const toggleMobileMenu = () => {
+    mobileMenuOpen.value = !mobileMenuOpen.value;
+  };
+  
+  onMounted(() => {
+    window.addEventListener('scroll', checkScroll);
+    checkScroll(); // Vérifier l'état initial
+  });
+  
+  onBeforeUnmount(() => {
+    window.removeEventListener('scroll', checkScroll);
+  });
+  </script>

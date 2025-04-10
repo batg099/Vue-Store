@@ -5,7 +5,7 @@ import Logging from '../views/Logging.vue';
 import First from '../components/First.vue';
 import Product from '../components/ProductPage.vue'
 import test_menu from '../components/test_menu.vue'
-
+import prd from '../components/ProductsALL.vue'
 
 const routes = [
   {
@@ -37,7 +37,13 @@ const routes = [
     path: '/test',
     name: 'test',
     component: test_menu
+  },
+  {
+    path: '/prd',
+    name: 'prd',
+    component: prd
   }
+
 ];
 
 // Ne pas oublier de mettre le nom du depot Git ('Vue-Store dans mon cas')
