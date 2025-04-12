@@ -7,12 +7,12 @@
 
 //import './style.css';  // Si ton fichier style.css est dans le même répertoire
 import Upload from "./components/Upload.vue";
-
+import Navbar from "./components/Navbar.vue";
 
 </script>
 
 <template>
-
+<Navbar/>
 
 <RouterView/>
   

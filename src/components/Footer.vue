@@ -1,155 +1,135 @@
 <template>
-  <footer class="footer">
-    <div class="footer-container">
-      <!-- Column 1: CATALOGUE -->
-      <div class="footer-column">
-        <h3 class="footer-heading">CATALOGUE</h3>
-        <ul class="footer-list">
-          <li><a href="#" class="footer-link">Accessoires</a></li>
-          <li><a href="#" class="footer-link">Essentials</a></li>
-          <li><a href="#" class="footer-link">Pro Kit</a></li>
-          <li><a href="#" class="footer-link">Nos produits</a></li>
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-logo-section">
+        <div class="footer-logo">GWEN</div>
+        <p class="footer-tagline">Élégance Moderne, Inspirée par Compiègne.</p>
+      </div>
+      <div class="footer-links">
+        <h3>Navigation</h3>
+        <ul>
+          <li><RouterLink to="/">Accueil</RouterLink></li>
+          <li><RouterLink to="/collection">Collection</RouterLink></li>
+          <li><RouterLink to="/contact">Contact</RouterLink></li>
+          <li><RouterLink to="/about">À Propos</RouterLink></li>
         </ul>
       </div>
-
-      <!-- Column 2: INFORMATIONS -->
-      <div class="footer-column">
-        <h3 class="footer-heading">INFORMATIONS</h3>
-        <ul class="footer-list">
-          <li><a href="#" class="footer-link">FAQ</a></li>
-          <li><a href="#" class="footer-link">Contact</a></li>
-          <li><a href="#" class="footer-link">Légende Du Club</a></li>
-          <li><a href="#" class="footer-link">Mentions Légales</a></li>
-          <li><a href="#" class="footer-link">Conditions Générales de Vente</a></li>
-          <li><a href="#" class="footer-link">Politique de Confidentialité</a></li>
+      <div class="footer-links">
+        <h3>Informations</h3>
+        <ul>
+          <li><RouterLink to="/cgv"> Conditions Générales de Vente</RouterLink></li>
+          <li><RouterLink to="/confidentialite">Politique de Confidentialité</RouterLink></li>
         </ul>
       </div>
-
-      <!-- Column 3: MODES DE PAIEMENT -->
-      <div class="footer-column">
-        <h3 class="footer-heading">MODES DE PAIEMENT</h3>
-        <ul class="footer-list">
-          <li>
-            <img src="../assets/paypal.png" alt="PayPal" class="payment-image" />
-          </li>
-          <li>
-            <img src="./assets/visa.png" alt="VISA" class="payment-image" />
-          </li>
-        </ul>
+      <div class="footer-contact">
+        <h3>Contactez-nous</h3>
+        <p>123 Rue de l'Élégance,<br>
+           60200 Compiègne, France</p>
+        <p>Téléphone: +33 3 44 00 00 00</p>
+        <p>Email: contact@gwenmode.com</p>
       </div>
+    </div>
+    <div class="copyright">
+      &copy; {{ new Date().getFullYear() }} Gwen. Tous droits réservés.
     </div>
   </footer>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue';
-
-export default defineComponent({
-  name: 'Footer',
-});
+<script setup>
+import { RouterLink } from 'vue-router';
 </script>
 
 <style scoped>
-/* Footer Styles */
-.footer {
-  background-color: #2d3748; /* Dark gray background */
-  color: #ffffff; /* White text */
-  padding: 2rem 0;
-  width: 100%;
-  margin: 0;
+footer {
+  background-color: var(--accent-color);
+  color: var(--light-text);
+  padding: 60px 20px 30px;
+  font-size: 0.9rem;
 }
 
-.footer-container {
-  max-width: 1200px; /* Limit content width */
-  margin: 0 auto; /* Center the content */
-  padding: 0 1rem; /* Add padding to the sides */
+.container {
+  width: 90%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-content {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 2rem;
+  gap: 30px;
+  margin-bottom: 40px;
 }
 
-.footer-column {
-  display: flex;
-  flex-direction: column;
+.footer-logo-section {
+  margin-bottom: 20px;
 }
 
-.footer-heading {
-  font-size: 1.25rem;
-  font-weight: bold;
-  margin-bottom: 1rem;
+.footer-logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  margin-bottom: 10px;
 }
 
-.footer-list {
+.footer-tagline {
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer-links h3,
+.footer-contact h3 {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 8px;
+}
+
+.footer-links ul {
   list-style: none;
   padding: 0;
-  margin: 0;
 }
 
-.footer-link {
-  color: #a0aec0; /* Light gray text */
+.footer-links li {
+  margin-bottom: 8px;
+}
+
+.footer-links a {
+  color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  margin-bottom: 0.5rem;
-  display: block;
-  transition: all 0.3s ease; /* Transition for hover effect */
+  transition: color 0.3s ease-in-out;
 }
 
-.footer-link:hover {
-  color: blue; /* Change to blue on hover */
-  transform: scale(1.05); /* Zoom effect on hover */
+.footer-links a:hover {
+  color: var(--primary-color);
 }
 
-/* Payment Images */
-.payment-image {
-  width: 50px; /* Adjust image size */
-  height: auto;
-  margin-bottom: 0.5rem;
-  transition: transform 0.3s ease; /* Smooth transition for hover */
+.footer-contact p {
+  line-height: 1.6;
+  margin-bottom: 10px;
 }
 
-.payment-image:hover {
-  transform: scale(1.1); /* Slight zoom on hover */
+.copyright {
+  text-align: center;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
 }
 
-/* Responsive Styles */
 @media (max-width: 768px) {
-  .footer-container {
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); /* Adjust columns for smaller screens */
-    gap: 1.5rem; /* Reduce gap between columns */
+  .footer-content {
+    grid-template-columns: 1fr;
   }
 
-  .footer-heading {
-    font-size: 1.1rem; /* Reduce heading size */
+  .footer-logo-section,
+  .footer-links,
+  .footer-contact {
+    margin-bottom: 30px;
+    text-align: center;
   }
 
-  .footer-link {
-    font-size: 0.9rem; /* Reduce link size */
-  }
-
-  .payment-image {
-    width: 40px; /* Smaller images for smaller screens */
-  }
-}
-
-@media (max-width: 480px) {
-  .footer-container {
-    grid-template-columns: 1fr; /* Stack columns vertically on very small screens */
-    gap: 1rem; /* Further reduce gap */
-  }
-
-  .footer-column {
-    text-align: center; /* Center-align content */
-  }
-
-  .footer-heading {
-    font-size: 1rem; /* Further reduce heading size */
-  }
-
-  .footer-link {
-    font-size: 0.85rem; /* Further reduce link size */
-  }
-
-  .payment-image {
-    width: 35px; /* Even smaller images for mobile */
+  .footer-links h3,
+  .footer-contact h3 {
+    text-align: center;
+    border-bottom: none;
   }
 }
 </style>

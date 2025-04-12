@@ -5,19 +5,25 @@
         <div class="nav-links">
           <a href="#" class="nav-link">Accueil</a>
           <a href="#" class="nav-link">Collection</a>
-          <a href="#" class="nav-link">Lookbook</a>
-          <a href="#" class="nav-link">Nouveautés</a>
-          <a href="#" class="nav-link">Contact</a>
+          <!--<a href="#" class="nav-link">Lookbook</a> -->
+          <!--<a href="#" class="nav-link">Nouveautés</a>-->
+          <RouterLink to="/contact" class="nav-link">
+            Contact
+          </RouterLink>
         </div>
         <div class="nav-icons">
           <a href="#" class="icon-link">
             <span class="material-icons">search</span>
           </a>
           <a href="#" class="icon-link">
-            <span class="material-icons">shopping_bag</span>
+            <RouterLink to="/panier" class="icon-link">
+              <span class="material-icons">shopping_bag</span>
+            </RouterLink>
           </a>
           <a href="#" class="icon-link">
+            <RouterLink to="/signing" class="icon-link">
             <span class="material-icons">person_outline</span>
+            </RouterLink>
           </a>
         </div>
         <button class="mobile-menu-btn" @click="toggleMobileMenu">
@@ -27,15 +33,19 @@
       <div class="mobile-menu" :class="{ 'mobile-menu-open': mobileMenuOpen }">
         <a href="#" class="mobile-nav-link">Accueil</a>
         <a href="#" class="mobile-nav-link">Collection</a>
-        <a href="#" class="mobile-nav-link">Lookbook</a>
-        <a href="#" class="mobile-nav-link">Nouveautés</a>
+        <!--<a href="#" class="mobile-nav-link">Lookbook</a> -->
+        <!--<a href="#" class="mobile-nav-link">Nouveautés</a>-->
+        <RouterLink to="/contact" class="icon-link">
         <a href="#" class="mobile-nav-link">Contact</a>
+      </RouterLink>
       </div>
     </nav>
   </template>
   
   <script setup>
   import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { RouterLink } from 'vue-router';
+import sign from '../views/Signing.vue'
   
   const navbar = ref(null);
   const scrolled = ref(false);

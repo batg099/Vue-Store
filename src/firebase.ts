@@ -3,6 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics  } from "firebase/analytics";
 import { getAuth       } from "firebase/auth";
 import { getStorage    } from "firebase/storage"; // 👈 AJOUTÉ
+import { getFirestore, collection } from 'firebase/firestore';
 
 // Configuration Firebase
 const firebaseConfig = {
@@ -21,5 +22,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 const analytics = getAnalytics(firebaseApp);
 const auth = getAuth(firebaseApp);
 const storage = getStorage(firebaseApp); // 👈 AJOUTÉ
+const db = getFirestore(firebaseApp);
+const messagesCollection = collection(db, 'messages');
 
-export { firebaseApp, analytics, auth, storage }; // 👈 AJOUTÉ storage ici aussi
+export { firebaseApp, analytics, auth, storage, messagesCollection }; // 👈 AJOUTÉ storage ici aussi

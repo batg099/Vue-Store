@@ -2,10 +2,15 @@ import { createRouter, createWebHistory } from 'vue-router';
 import Home from '../views/Home.vue';
 import Signing from '../views/Signing.vue';
 import Logging from '../views/Logging.vue';
-import First from '../components/First.vue';
+import First from '../views/First.vue';
 import Product from '../components/ProductPage.vue'
 import test_menu from '../components/test_menu.vue'
-import prd from '../components/ProductsALL.vue'
+import prd from '../views/ProductsALL.vue'
+import panier from '../views/Panier.vue'
+import contact from '../views/Contact.vue'
+import A_propos from '../views/about.vue';
+import Cgv from '../views/Cgv.vue';
+import Confidentialite from '../views/Confidentialite.vue';
 
 const routes = [
   {
@@ -42,6 +47,32 @@ const routes = [
     path: '/prd',
     name: 'prd',
     component: prd
+  },
+  {
+    path: '/panier',
+    name: 'panier',
+    component: panier
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: contact
+  },
+  {
+    path: '/about',
+    name: 'Apropos',
+    component: A_propos
+  },
+  {
+    path: '/cgv',
+    name: 'cgv',
+    component: Cgv
+  }
+  ,
+  {
+    path: '/confidentialite',
+    name: 'confidentialite',
+    component: Confidentialite
   }
 
 ];
