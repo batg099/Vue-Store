@@ -1,8 +1,131 @@
+<template>
+  <div class="signup-container">
+    <div class="signup-header">
+      <h2 class="title">Créer votre compte</h2>
+      <p class="subtitle">
+        Ou
+        <RouterLink to="/Logging" class="link">
+          connectez-vous à votre compte existant
+        </RouterLink>
+      </p>
+    </div>
+
+    <div class="signup-form-container">
+      <div class="signup-form-wrapper">
+        <form @submit.prevent="register" class="signup-form">
+          <div class="form-group">
+            <label for="email" class="form-label">
+              Adresse email
+            </label>
+            <div class="input-container">
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                v-model="email"
+                :class="{'input-error': !isEmailValid}"
+                class="form-input"
+                placeholder="votre@email.com"
+              />
+              <p v-if="!isEmailValid" class="error-message">
+                Veuillez entrer une adresse email valide
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="password" class="form-label">
+              Mot de passe
+            </label>
+            <div class="input-container">
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                required
+                v-model="password"
+                :class="{'input-error': !isPasswordStrong}"
+                class="form-input"
+              />
+              <p v-if="!isPasswordStrong" class="error-message">
+                Le mot de passe doit contenir au moins 8 caractères
+              </p>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="confirm-password" class="form-label">
+              Confirmez le mot de passe
+            </label>
+            <div class="input-container">
+              <input
+                id="confirm-password"
+                name="confirm-password"
+                type="password"
+                required
+                v-model="confirmPassword"
+                :class="{'input-error': !doPasswordsMatch}"
+                class="form-input"
+              />
+              <p v-if="!doPasswordsMatch" class="error-message">
+                Les mots de passe ne correspondent pas
+              </p>
+            </div>
+          </div>
+
+          <div class="checkbox-container">
+            <input
+              id="terms"
+              name="terms"
+              type="checkbox"
+              v-model="acceptTerms"
+              class="checkbox-input"
+            />
+            <label for="terms" class="checkbox-label">
+              J'accepte les <a href="#" class="link">conditions d'utilisation</a> et la <a href="#" class="link">politique de confidentialité</a>
+            </label>
+          </div>
+
+          <div v-if="errorMessage" class="error-container">
+            <div class="error-content">
+              <h3 class="error-title">
+                Erreur lors de l'inscription
+              </h3>
+              <div class="error-details">
+                <p>{{ errorMessage }}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="button-container">
+            <button
+              type="submit"
+              :disabled="!isFormValid || loading"
+              class="submit-button"
+              :class="{'button-disabled': !isFormValid || loading}"
+            >
+              <span v-if="loading" class="loading-icon">
+                <svg class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="spinner-circle" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="spinner-path" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </span>
+              S'inscrire
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase"
-import { useRouter } from 'vue-router'
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { supabase } from '../supabase'; // Assurez-vous que le chemin vers votre fichier Supabase est correct
 
 const router = useRouter();
 const email = ref('');
@@ -27,169 +150,44 @@ const doPasswordsMatch = computed(() => {
 });
 
 const isFormValid = computed(() => {
-  return email.value && 
-         password.value && 
-         password.value.length >= 8 && 
-         password.value === confirmPassword.value && 
+  return email.value &&
+         password.value &&
+         password.value.length >= 8 &&
+         password.value === confirmPassword.value &&
          acceptTerms.value;
 });
 
-function register() {
+async function register() {
   errorMessage.value = '';
   loading.value = true;
-  
-  createUserWithEmailAndPassword(auth, email.value, password.value)
-    .then((userCredential) => {
-      console.log('Successfully registered!', userCredential.user);
-      router.push('./Logging');
-    })
-    .catch((error) => {
-      console.error("Erreur:", error.code);
-      switch(error.code) {
-        case 'auth/email-already-in-use':
-          errorMessage.value = "Cette adresse email est déjà utilisée.";
-          break;
-        case 'auth/invalid-email':
-          errorMessage.value = "L'adresse email n'est pas valide.";
-          break;
-        case 'auth/weak-password':
-          errorMessage.value = "Le mot de passe est trop faible.";
+
+  try {
+    const { error, data } = await supabase.auth.signUp({
+      email: email.value,
+      password: password.value,
+    });
+
+    if (error) {
+      console.error('Erreur d\'inscription Supabase:', error);
+      switch (error.code) {
+        case '23505': // Code d'erreur PostgreSQL pour "duplicate key value violates unique constraint" (email déjà utilisé)
+          errorMessage.value = 'Cette adresse email est déjà utilisée.';
           break;
         default:
           errorMessage.value = error.message;
       }
-    })
-    .finally(() => {
-      loading.value = false;
-    });
+    } else {
+      console.log('Inscription réussie!', data.user);
+      router.push('./Logging');
+    }
+  } catch (error) {
+    console.error('Erreur inattendue lors de l\'inscription:', error);
+    errorMessage.value = 'Une erreur inattendue s\'est produite.';
+  } finally {
+    loading.value = false;
+  }
 }
 </script>
-
-<template>
-  <div class="signup-container">
-    <div class="signup-header">
-      <h2 class="title">Créer votre compte</h2>
-      <p class="subtitle">
-        Ou
-        <RouterLink to="/Logging" class="link">
-          connectez-vous à votre compte existant
-        </RouterLink>
-      </p>
-    </div>
-
-    <div class="signup-form-container">
-      <div class="signup-form-wrapper">
-        <form @submit.prevent="register" class="signup-form">
-          <div class="form-group">
-            <label for="email" class="form-label">
-              Adresse email
-            </label>
-            <div class="input-container">
-              <input 
-                id="email" 
-                name="email" 
-                type="email" 
-                autocomplete="email" 
-                required 
-                v-model="email"
-                :class="{'input-error': !isEmailValid}"
-                class="form-input" 
-                placeholder="votre@email.com"
-              />
-              <p v-if="!isEmailValid" class="error-message">
-                Veuillez entrer une adresse email valide
-              </p>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="password" class="form-label">
-              Mot de passe
-            </label>
-            <div class="input-container">
-              <input 
-                id="password" 
-                name="password" 
-                type="password" 
-                autocomplete="new-password" 
-                required 
-                v-model="password"
-                :class="{'input-error': !isPasswordStrong}"
-                class="form-input" 
-              />
-              <p v-if="!isPasswordStrong" class="error-message">
-                Le mot de passe doit contenir au moins 8 caractères
-              </p>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="confirm-password" class="form-label">
-              Confirmez le mot de passe
-            </label>
-            <div class="input-container">
-              <input 
-                id="confirm-password" 
-                name="confirm-password" 
-                type="password" 
-                required 
-                v-model="confirmPassword"
-                :class="{'input-error': !doPasswordsMatch}"
-                class="form-input" 
-              />
-              <p v-if="!doPasswordsMatch" class="error-message">
-                Les mots de passe ne correspondent pas
-              </p>
-            </div>
-          </div>
-
-          <div class="checkbox-container">
-            <input 
-              id="terms" 
-              name="terms" 
-              type="checkbox" 
-              v-model="acceptTerms"
-              class="checkbox-input" 
-            />
-            <label for="terms" class="checkbox-label">
-              J'accepte les <a href="#" class="link">conditions d'utilisation</a> et la <a href="#" class="link">politique de confidentialité</a>
-            </label>
-          </div>
-
-          <div v-if="errorMessage" class="error-container">
-            <div class="error-content">
-              <h3 class="error-title">
-                Erreur lors de l'inscription
-              </h3>
-              <div class="error-details">
-                <p>{{ errorMessage }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="button-container">
-            <button 
-              type="submit" 
-              :disabled="!isFormValid || loading"
-              class="submit-button"
-              :class="{'button-disabled': !isFormValid || loading}"
-            >
-              <span v-if="loading" class="loading-icon">
-                <svg class="spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle class="spinner-circle" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                  <path class="spinner-path" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-              </span>
-              S'inscrire
-            </button>
-          </div>
-        </form>
-
-        
-      </div>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .signup-container {

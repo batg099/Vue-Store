@@ -1,50 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase"
-import { useRouter } from 'vue-router'
-
-const router = useRouter();
-const email = ref('');
-const password = ref('');
-const loading = ref(false);
-const errorMessage = ref('');
-
-function login() {
-  errorMessage.value = '';
-  loading.value = true;
-  
-  signInWithEmailAndPassword(auth, email.value, password.value)
-    .then((userCredential) => {
-      console.log('Successfully logged in!', userCredential.user);
-      router.push('/');
-    })
-    .catch((error) => {
-      console.error("Erreur:", error.code);
-      
-      switch(error.code) {
-        case 'auth/invalid-credential':
-          errorMessage.value = "Email ou mot de passe incorrect.";
-          break;
-        case 'auth/user-not-found':
-          errorMessage.value = "Aucun compte trouvé avec cet email.";
-          break;
-        case 'auth/wrong-password':
-          errorMessage.value = "Mot de passe incorrect.";
-          break;
-        case 'auth/too-many-requests':
-          errorMessage.value = "Trop de tentatives. Veuillez réessayer plus tard.";
-          break;
-        default:
-          errorMessage.value = error.message;
-      }
-    })
-    .finally(() => {
-      loading.value = false;
-    });
-}
-</script>
-
 <template>
   <div class="login-container">
     <div class="login-header">
@@ -76,14 +29,14 @@ function login() {
               Adresse email
             </label>
             <div class="input-container">
-              <input 
-                id="email" 
-                name="email" 
-                type="email" 
-                autocomplete="email" 
-                required 
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
                 v-model="email"
-                class="form-input" 
+                class="form-input"
                 placeholder="votre@email.com"
               />
             </div>
@@ -94,14 +47,14 @@ function login() {
               Mot de passe
             </label>
             <div class="input-container">
-              <input 
-                id="password" 
-                name="password" 
-                type="password" 
-                autocomplete="current-password" 
-                required 
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autocomplete="current-password"
+                required
                 v-model="password"
-                class="form-input" 
+                class="form-input"
               />
             </div>
             <div class="forgot-password">
@@ -110,8 +63,8 @@ function login() {
           </div>
 
           <div class="button-container">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               :disabled="loading"
               class="submit-button"
               :class="{'button-disabled': loading}"
@@ -130,5 +83,55 @@ function login() {
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { supabase } from '../supabase'; // Assurez-vous que le chemin vers votre fichier Supabase est correct
+
+const router = useRouter();
+const email = ref('');
+const password = ref('');
+const loading = ref(false);
+const errorMessage = ref('');
+
+async function login() {
+  errorMessage.value = '';
+  loading.value = true;
+
+  try {
+    const { error, data } = await supabase.auth.signInWithPassword({
+      email: email.value,
+      password: password.value,
+    });
+
+    if (error) {
+      console.error('Erreur de connexion Supabase:', error);
+      switch (error.code) {
+        case 'auth/invalid-credential': // Bien que Supabase utilise des codes d'erreur différents, une vérification générique peut être utile
+        case 'auth/user-not-found':
+          errorMessage.value = 'Email ou mot de passe incorrect.';
+          break;
+        case 'auth/wrong-password':
+          errorMessage.value = 'Mot de passe incorrect.';
+          break;
+        case 'auth/too-many-requests': // Supabase a aussi une gestion des tentatives
+          errorMessage.value = 'Trop de tentatives. Veuillez réessayer plus tard.';
+          break;
+        default:
+          errorMessage.value = error.message;
+      }
+    } else {
+      console.log('Connecté avec succès!', data.user);
+      router.push('/');
+    }
+  } catch (error) {
+    console.error('Erreur inattendue lors de la connexion:', error);
+    errorMessage.value = 'Une erreur inattendue s\'est produite.';
+  } finally {
+    loading.value = false;
+  }
+}
+</script>
 
 <style scoped src="../styles/Logging.css"></style>

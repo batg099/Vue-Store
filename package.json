@@ -11,6 +11,7 @@
   "dependencies": {
     "@firebasegen/default-connector": "file:dataconnect-generated/js/default-connector",
     "@primevue/forms": "^4.3.1",
+    "@supabase/supabase-js": "^2.49.4",
     "@tailwindcss/vite": "^4.0.10",
     "firebase": "^11.4.0",
     "primeicons": "^5.0.0",

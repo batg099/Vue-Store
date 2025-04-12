@@ -36,34 +36,80 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import product1 from '../../assets/products/1.png';
-import product2 from '../../assets/products/2.png';
-import product3 from '../../assets/products/3.png';
-// Données de trois produits uniquement
-const limitedProducts = [
-  {
-    id: 1,
-    name: 'Blazer Classique',
-    price: 149.99,
-    image: product1,
-    colors: ['#30606e', '#1a1a2e', '#4c4c6d']
-  },
-  {
-    id: 2,
-    name: 'Chemise Élégance',
-    price: 79.99,
-    image: product2,
-    colors: ['#ffffff', '#eaeaea', '#c9d1d3']
-  },
-  {
-    id: 3,
-    name: 'Pantalon Premium',
-    price: 99.99,
-    image: product3,
-    colors: ['#1a1a2e', '#30606e']
+import { ref, onMounted } from 'vue';
+import { supabase } from '../../supabase';
+
+// Référence pour stocker les URLs des images
+const productImages = ref([null, null, null]);
+const limitedProducts = ref([]);
+
+const bucketName = 'test2';
+const imageNames = ['1.png', '2.png', '3.png'];
+
+onMounted(async () => {
+  // Charger toutes les images
+  await loadAllProductImages();
+});
+
+const getImageUrl = async (imageName) => {
+  try {
+    const { data, error } = supabase
+      .storage
+      .from(bucketName)
+      .getPublicUrl(imageName);
+
+    if (error) {
+      console.error(`Erreur lors de la génération de l'URL pour ${imageName}:`, error);
+      return null;
+    }
+
+    if (data) {
+      return data.publicUrl;
+    }
+    return null;
+  } catch (err) {
+    console.error(`Exception lors de la génération de l'URL pour ${imageName}:`, err);
+    return null;
   }
-];
+};
+
+const loadAllProductImages = async () => {
+  // Charger toutes les images en parallèle
+  const imagePromises = imageNames.map((name, index) => 
+    getImageUrl(name).then(url => {
+      productImages.value[index] = url;
+      return url;
+    })
+  );
+  
+  // Attendre que toutes les images soient chargées
+  const urls = await Promise.all(imagePromises);
+  
+  // Créer les produits avec les URLs des images
+  limitedProducts.value = [
+    {
+      id: 1,
+      name: 'Blazer Classique',
+      price: 149.99,
+      image: urls[0], // Utiliser l'URL de 1.png
+      colors: ['#30606e', '#1a1a2e', '#4c4c6d']
+    },
+    {
+      id: 2,
+      name: 'Chemise Élégance',
+      price: 79.99,
+      image: urls[1], // Utiliser l'URL de 2.png
+      colors: ['#ffffff', '#eaeaea', '#c9d1d3']
+    },
+    {
+      id: 3,
+      name: 'Pantalon Premium',
+      price: 99.99,
+      image: urls[2], // Utiliser l'URL de 3.png
+      colors: ['#1a1a2e', '#30606e']
+    }
+  ];
+};
 </script>
 
 <style scoped src="../../styles/Menu.css"> </style>
