@@ -4,7 +4,6 @@ import Signing from '../views/Signing.vue';
 import Logging from '../views/Logging.vue';
 import First from '../views/First.vue';
 import Product from '../components/ProductPage.vue'
-import test_menu from '../components/test_menu.vue'
 import prd from '../views/ProductsALL.vue'
 import panier from '../views/Panier.vue'
 import contact from '../views/Contact.vue'
@@ -37,11 +36,6 @@ const routes = [
     path: '/product',
     name: 'product',
     component: Product
-  },
-  {
-    path: '/test',
-    name: 'test',
-    component: test_menu
   },
   {
     path: '/prd',
