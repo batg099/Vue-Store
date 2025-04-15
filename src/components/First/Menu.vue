@@ -7,7 +7,7 @@
         class="product-card"
       >
         <div class="product-image-container">
-          <img :src="product.image" :alt="product.name" class="product-image">
+          <img :src="product.image" :alt="product.name" class="product-image" />
           <div class="product-overlay">
             <button class="quick-view-btn">Aperçu rapide</button>
           </div>
@@ -25,7 +25,7 @@
               ></span>
             </div>
           </div>
-          <button class="add-to-cart-btn">
+          <button class="add-to-cart-btn" @click="addToCart(product)">
             <span class="material-icons">add_shopping_cart</span>
             Ajouter au panier
           </button>
@@ -36,80 +36,78 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
-import { supabase } from '../../supabase';
+import { ref, onMounted } from 'vue'
+import { supabase } from '../../supabase'
+import { useCartStore } from '../../stores/carte'
 
-// Référence pour stocker les URLs des images
-const productImages = ref([null, null, null]);
-const limitedProducts = ref([]);
+const cart = useCartStore()
 
-const bucketName = 'test2';
-const imageNames = ['1.png', '2.png', '3.png'];
+const productImages = ref([null, null, null])
+const limitedProducts = ref([])
+
+const bucketName = 'test2'
+const imageNames = ['1.png', '2.png', '3.png']
 
 onMounted(async () => {
-  // Charger toutes les images
-  await loadAllProductImages();
-});
+  await loadAllProductImages()
+})
 
 const getImageUrl = async (imageName) => {
   try {
-    const { data, error } = supabase
-      .storage
+    const { data, error } = supabase.storage
       .from(bucketName)
-      .getPublicUrl(imageName);
+      .getPublicUrl(imageName)
 
     if (error) {
-      console.error(`Erreur lors de la génération de l'URL pour ${imageName}:`, error);
-      return null;
+      console.error(`Erreur pour ${imageName} :`, error)
+      return null
     }
 
-    if (data) {
-      return data.publicUrl;
-    }
-    return null;
+    return data?.publicUrl ?? null
   } catch (err) {
-    console.error(`Exception lors de la génération de l'URL pour ${imageName}:`, err);
-    return null;
+    console.error(`Exception URL ${imageName} :`, err)
+    return null
   }
-};
+}
 
 const loadAllProductImages = async () => {
-  // Charger toutes les images en parallèle
-  const imagePromises = imageNames.map((name, index) => 
-    getImageUrl(name).then(url => {
-      productImages.value[index] = url;
-      return url;
-    })
-  );
-  
-  // Attendre que toutes les images soient chargées
-  const urls = await Promise.all(imagePromises);
-  
-  // Créer les produits avec les URLs des images
+  const urls = await Promise.all(
+    imageNames.map((name, index) =>
+      getImageUrl(name).then((url) => {
+        productImages.value[index] = url
+        return url
+      })
+    )
+  )
+
   limitedProducts.value = [
     {
       id: 1,
       name: 'Blazer Classique',
       price: 149.99,
-      image: urls[0], // Utiliser l'URL de 1.png
+      image: urls[0],
       colors: ['#30606e', '#1a1a2e', '#4c4c6d']
     },
     {
       id: 2,
       name: 'Chemise Élégance',
       price: 79.99,
-      image: urls[1], // Utiliser l'URL de 2.png
+      image: urls[1],
       colors: ['#ffffff', '#eaeaea', '#c9d1d3']
     },
     {
       id: 3,
       name: 'Pantalon Premium',
       price: 99.99,
-      image: urls[2], // Utiliser l'URL de 3.png
+      image: urls[2],
       colors: ['#1a1a2e', '#30606e']
     }
-  ];
-};
+  ]
+}
+
+const addToCart = (product) => {
+  cart.addItem({ ...product, quantity: 1 })
+}
 </script>
 
-<style scoped src="../../styles/Menu.css"> </style>
+<style scoped src="../../styles/Menu.css"></style>

@@ -10,6 +10,7 @@ import contact from '../views/Contact.vue'
 import A_propos from '../views/about.vue';
 import Cgv from '../views/Cgv.vue';
 import Confidentialite from '../views/Confidentialite.vue';
+import Collection from '../views/Collection.vue';
 
 const routes = [
   {
@@ -67,6 +68,12 @@ const routes = [
     path: '/confidentialite',
     name: 'confidentialite',
     component: Confidentialite
+  }
+  ,
+  {
+    path: '/collection',
+    name: 'collection',
+    component: Collection
   }
 
 ];

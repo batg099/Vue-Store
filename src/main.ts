@@ -18,14 +18,21 @@ import { firebaseApp } from "./firebase.ts";
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'  // Si tu utilises le thème Aura depuis PrimeUX
 
+import { createPinia } from 'pinia'
+import { useCartStore } from './stores/carte.ts'
+const pinia = createPinia()
+
 // Créer l'application Vue
 const app = createApp(App); // Crée l'application Vue
+app.use(pinia)
 app.use(router); // Utilise le router dans l'application
 app.use(VueFire, {
   firebaseApp,
   modules:[VueFireFirestoreOptionsAPI()]
 });
 
+const cartStore = useCartStore()
+cartStore.loadFromLocalStorage()
 
 // Utiliser PrimeVue et appliquer le thème Aura
 app.use(PrimeVue, {

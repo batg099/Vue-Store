@@ -107,23 +107,18 @@ async function login() {
 
     if (error) {
       console.error('Erreur de connexion Supabase:', error);
-      switch (error.code) {
-        case 'auth/invalid-credential': // Bien que Supabase utilise des codes d'erreur différents, une vérification générique peut être utile
-        case 'auth/user-not-found':
-          errorMessage.value = 'Email ou mot de passe incorrect.';
-          break;
-        case 'auth/wrong-password':
-          errorMessage.value = 'Mot de passe incorrect.';
-          break;
-        case 'auth/too-many-requests': // Supabase a aussi une gestion des tentatives
-          errorMessage.value = 'Trop de tentatives. Veuillez réessayer plus tard.';
-          break;
-        default:
-          errorMessage.value = error.message;
+      
+      // Gérer les codes d'erreur spécifiques à Supabase
+      if (error.message.includes('Invalid login credentials')) {
+        errorMessage.value = 'Email ou mot de passe incorrect.';
+      } else if (error.message.includes('rate limit')) {
+        errorMessage.value = 'Trop de tentatives. Veuillez réessayer plus tard.';
+      } else {
+        errorMessage.value = error.message;
       }
     } else {
       console.log('Connecté avec succès!', data.user);
-      router.push('/');
+      router.push('/first');
     }
   } catch (error) {
     console.error('Erreur inattendue lors de la connexion:', error);
