@@ -60,6 +60,7 @@
     </main>
     <Ft />
   </div>
+  <Chatbot/>
 </template>
 
 <script setup>
@@ -67,6 +68,7 @@ import { ref, onMounted } from 'vue';
 import Navbar from "../components/Navbar.vue";
 import Ft from "../components/Footer.vue";
 import ProductMenu from "../components/First/Menu.vue";
+import Chatbot from '../components/SmartChatbot.vue';
 
 // Animation au défilement
 onMounted(() => {

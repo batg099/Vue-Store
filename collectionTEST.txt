@@ -1,0 +1,232 @@
+<template>
+    <div class="gallery-container">
+      <h1>Nos Collections Exclusives</h1>
+      <div v-if="loading" class="loading">Chargement...</div>
+      <div v-else>
+        <div v-if="error" class="error">{{ error }}</div>
+        <div v-else class="products-grid">
+            <router-link
+  v-for="product in products"
+  :key="product.id"
+  :to="'/product/' + getFirstLetterFromImageUrl(product.image_url)" class="product-card"
+>
+            <!-- Badges -->
+            <div v-if="product.is_promo" class="promo-badge">PROMO</div>
+            <div v-if="product.is_sponsored" class="sponsored-badge">Sponsorisé</div>
+            
+            <!-- Image -->
+            <img 
+              :src="getImageUrl(product.image_url)" 
+              :alt="product.name"
+              class="product-image"
+              @error="handleImageError"
+            />
+            
+            <!-- Infos Produit -->
+            <div class="product-info">
+              <h3 class="product-name">{{ product.name }}</h3>
+              <div class="price-container">
+                <span class="current-price">{{ formatPrice(product.price) }} €</span>
+                <span v-if="product.original_price" class="old-price">{{ formatPrice(product.original_price) }} €</span>
+              </div>
+            </div>
+          </router-link>
+        </div>
+      </div>
+    </div>
+  </template>
+  
+  <script lang="ts">
+  import { defineComponent, ref, onMounted } from 'vue';
+  import { supabase } from '../supabase';
+  import { useRouter } from 'vue-router';
+  
+  interface Product {
+    id: string;
+    name: string;
+    description: string;
+    price: number;
+    original_price: number | null;
+    image_url: string;
+    slug: string;
+    is_promo: boolean;
+    is_sponsored: boolean;
+  }
+  
+  export default defineComponent({
+    name: 'ProductList',
+    setup() {
+      const router = useRouter();
+      const products = ref<Product[]>([]);
+      const loading = ref(true);
+      const error = ref<string|null>(null);
+  
+      const fetchProducts = async () => {
+        try {
+          loading.value = true;
+          const { data, error: dbError } = await supabase
+            .from('products')
+            .select('*')
+            .order('created_at', { ascending: false });
+  
+          if (dbError) throw dbError;
+          products.value = data || [];
+        } catch (err) {
+          // error.value = err.message;
+          console.error("Erreur:");
+        } finally {
+          loading.value = false;
+        }
+      };
+  
+      const getImageUrl = (imagePath: string) => {
+        return `${supabase.storage.from('test2').getPublicUrl(imagePath).data.publicUrl}?t=${Date.now()}`;
+      };
+  
+      const formatPrice = (price: number) => {
+        return price.toFixed(2).replace('.', ',');
+      };
+  
+      const handleImageError = (e: Event) => {
+        (e.target as HTMLImageElement).style.display = 'none';
+      };
+      const getFirstLetterFromImageUrl = (imageUrl: string) => {
+        if (!imageUrl) return ''; // Gérer le cas où l'URL est vide
+        const parts = imageUrl.split('/'); // Séparer l'URL par les slashs
+        const filename = parts[parts.length - 1]; // Le nom du fichier est le dernier élément
+        if (!filename) return ''; // Gérer le cas où il n'y a pas de nom de fichier
+        return filename.charAt(0); // Prendre le premier caractère
+    };
+  
+      onMounted(fetchProducts);
+  
+      return { 
+        products, 
+        loading, 
+        error,
+        getFirstLetterFromImageUrl,
+        getImageUrl,
+        formatPrice,
+        handleImageError
+      };
+    }
+  });
+  </script>
+  
+  <style scoped>
+  .gallery-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+  }
+  
+  .product-card {
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    display: block;
+    text-decoration: none;
+    color: inherit;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .product-image {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  
+  .product-info {
+    padding: 15px;
+    text-align: center;
+  }
+  
+  .product-name {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+    color: #333;
+    min-height: 40px;
+  }
+  
+  .price-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .current-price {
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #2c3e50;
+  }
+  
+  .old-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 0.9em;
+  }
+  
+  /* Badges */
+  .promo-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: #e63946;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 2;
+  }
+  
+  .sponsored-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #4285f4;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-weight: bold;
+    z-index: 2;
+  }
+  
+  .loading, .error {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+  }
+  
+  .error {
+    color: #ff4444;
+  }
+  
+  @media (max-width: 900px) {
+    .products-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 600px) {
+    .products-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+  </style>

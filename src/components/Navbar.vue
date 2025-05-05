@@ -4,13 +4,13 @@
       <div class="logo">GWEN</div>
       <div class="nav-links">
         <a href="#" class="nav-link">Accueil</a>
-        <a href="#" class="nav-link">Collection</a>
+        <RouterLink to="/collection" class="nav-link"> Collection </RouterLink>
         <RouterLink to="/contact" class="nav-link">Contact</RouterLink>
       </div>
       <div class="nav-icons">
-        <a href="#" class="icon-link">
+        <!-- <a href="#" class="icon-link">
           <span class="material-icons">search</span>
-        </a>
+        </a> -->
 
         <!-- Icône panier avec badge -->
         <RouterLink to="/panier" class="icon-link cart-icon-wrapper">

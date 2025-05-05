@@ -1,511 +1,703 @@
 <template>
-    <div 
-      class="product-page" 
-      tabindex="0" 
-      @keydown.left="prevImage"
-      @keydown.right="nextImage"
-      @keydown.esc="closeLightbox"
-      ref="pageContainer"
-    >
-      <div class="product-container">
-        <!-- Colonne Galerie -->
-        <div class="gallery-column">
-          <div class="main-image-container" @mouseenter="showArrows = true" @mouseleave="showArrows = false">
-            <img :src="currentImage" class="main-image" @click="openLightbox">
-            <button 
-              v-show="showArrows || isKeyboardNavigating" 
-              class="nav-arrow left" 
-              @click.stop="prevImage"
-              @focus="isKeyboardNavigating = true"
-              @blur="isKeyboardNavigating = false"
-            >‹</button>
-            <button 
-              v-show="showArrows || isKeyboardNavigating" 
-              class="nav-arrow right" 
-              @click.stop="nextImage"
-              @focus="isKeyboardNavigating = true"
-              @blur="isKeyboardNavigating = false"
-            >›</button>
-          </div>
-          <div class="thumbnails">
-            <img 
-              v-for="(img, index) in product.images" 
-              :key="index"
-              :src="img"
-              @click="currentImageIndex = index"
-              :class="{ active: currentImageIndex === index }"
-            >
-          </div>
+  <div class="product-detail-container">
+    <!-- Affichage loader pendant le chargement -->
+    <div v-if="loading" class="loading-container">
+      <div class="loader"></div>
+      <p>Chargement du produit...</p>
+    </div>
+
+    <!-- Message d'erreur si le produit n'est pas trouvé -->
+    <div v-else-if="error" class="error-container">
+      <p class="error-message">{{ error }}</p>
+      <RouterLink to="/" class="back-link">
+        <button class="back-button">Retour à la boutique</button>
+      </RouterLink>
+    </div>
+
+    <!-- Affichage du produit -->
+    <div v-else-if="product" class="product-detail">
+      <div class="product-gallery">
+        <div class="product-main-image">
+          <img :src="product.image_url" :alt="product.name" class="main-image" />
+          <span v-if="product.is_promo" class="promo-badge">PROMO</span>
         </div>
-  
-        <!-- Colonne Infos Produit -->
-        <div class="info-column">
-          <h1>{{ product.name }}</h1>
-          
-          <div class="price-box">
-            <span class="price">€{{ product.price.toFixed(2) }}</span>
-            <span class="availability" v-if="product.isPreorder">Précommande</span>
-          </div>
-  
-          <div class="size-selector">
-            <h3>TAILLES DISPONIBLES</h3>
-            <div class="size-options">
-              <button
-                v-for="size in sizes"
-                :key="size"
-                @click="selectSize(size)"
-                :class="{ selected: selectedSize === size, unavailable: !availableSizes.includes(size) }"
-              >
-                {{ size }}
-              </button>
-            </div>
-          </div>
-  
-          <div class="quantity-selector">
-            <h3>QUANTITÉ</h3>
-            <div class="quantity-controls">
-              <button @click="decreaseQuantity">-</button>
-              <input type="number" v-model.number="quantity" min="1" max="10">
-              <button @click="increaseQuantity">+</button>
-            </div>
-          </div>
-  
-          <button 
-            class="add-to-cart" 
-            @click="addToCart"
-            :class="{ hovered: isHovered }"
-            @mouseenter="isHovered = true"
-            @mouseleave="isHovered = false"
+        <!-- Miniatures additionnelles si disponibles -->
+        <div v-if="additionalImages.length > 0" class="product-thumbnails">
+          <div 
+            v-for="(img, index) in additionalImages" 
+            :key="index" 
+            class="thumbnail"
+            @click="setMainImage(img)"
           >
-            AJOUTER AU PANIER
-          </button>
-  
-          <div class="product-description">
-            <h3>DESCRIPTION</h3>
-            <p>{{ product.description }}</p>
+            <img :src="img" :alt="`${product.name} - vue ${index + 1}`" />
           </div>
         </div>
       </div>
-  
-      <!-- Lightbox avec navigation -->
-      <div v-if="showLightbox" class="lightbox" @click="closeLightbox">
-        <div class="lightbox-content" @click.stop>
-          <button class="close-btn" @click="closeLightbox">×</button>
-          <img :src="currentImage" class="lightbox-image">
-          <button class="lightbox-arrow left" @click.stop="prevImage">‹</button>
-          <button class="lightbox-arrow right" @click.stop="nextImage">›</button>
+
+      <div class="product-info">
+        <h1 class="product-title">{{ product.name }}</h1>
+        
+        <div class="product-price-container">
+          <span class="product-price">{{ product.price }} €</span>
+          <span v-if="product.original_price" class="product-original-price">{{ product.original_price }} €</span>
+        </div>
+
+        <div v-if="product.description" class="product-description">
+          <p>{{ product.description }}</p>
+        </div>
+
+        <div class="product-colors" v-if="product.colors && product.colors.length > 0">
+          <h3>Couleurs disponibles</h3>
+          <div class="color-options">
+            <span
+              v-for="(color, index) in product.colors"
+              :key="index"
+              class="color-option"
+              :class="{ active: selectedColor === color }"
+              :style="{ backgroundColor: color }"
+              @click="selectedColor = color"
+            ></span>
+          </div>
+          <p v-if="selectedColor" class="selected-color-text">
+            Couleur sélectionnée: <span class="color-name">{{ getColorName(selectedColor) }}</span>
+          </p>
+        </div>
+
+        <div class="product-quantity">
+          <h3>Quantité</h3>
+          <div class="quantity-selector">
+            <button 
+              @click="decrementQuantity" 
+              class="quantity-btn"
+              :disabled="quantity <= 1"
+            >-</button>
+            <span class="quantity-value">{{ quantity }}</span>
+            <button 
+              @click="incrementQuantity" 
+              class="quantity-btn"
+            >+</button>
+          </div>
+        </div>
+
+        <div class="product-actions">
+          <button @click="addToCart" class="add-to-cart-btn">
+            <span class="material-icons">shopping_cart</span>
+            Ajouter au panier
+          </button>
+          <button @click="toggleFavorite" class="favorite-btn">
+            <span class="material-icons">{{ isFavorite ? 'favorite' : 'favorite_border' }}</span>
+          </button>
+        </div>
+
+        <div class="product-meta">
+          <p v-if="product.slug" class="product-reference">Référence: {{ product.slug }}</p>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script lang="ts">
-  import { defineComponent } from 'vue';
-  import image1 from '../assets/products/1.png';
-  import image2 from '../assets/products/2.png';
-  import image3 from '../assets/products/3.png';
-  import image4 from '../assets/products/4.png';
-  
-  export default defineComponent({
-    name: 'ProductPage',
-    data() {
+
+    <!-- Section produits similaires -->
+    <div v-if="similarProducts.length > 0" class="similar-products">
+      <h2>Produits similaires</h2>
+      <div class="similar-products-grid">
+        <div 
+          v-for="similarProduct in similarProducts" 
+          :key="similarProduct.id"
+          class="similar-product-card"
+        >
+          <RouterLink :to="`/product/${similarProduct.id}`">
+            <div class="similar-product-image">
+              <img :src="similarProduct.image_url" :alt="similarProduct.name" />
+            </div>
+            <div class="similar-product-info">
+              <h3>{{ similarProduct.name }}</h3>
+              <p class="similar-product-price">{{ similarProduct.price }} €</p>
+            </div>
+          </RouterLink>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, RouterLink } from 'vue-router'
+import { supabase } from '../supabase'
+import { useCartStore } from '../stores/carte'
+
+const route = useRoute()
+const cart = useCartStore()
+
+// État du composant
+const product = ref(null)
+const loading = ref(true)
+const error = ref(null)
+const quantity = ref(1)
+const selectedColor = ref(null)
+const similarProducts = ref([])
+const additionalImages = ref([])
+const isFavorite = ref(false)
+
+// Observer les changements d'ID dans l'URL pour recharger le produit si nécessaire
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    fetchProductById(newId)
+  }
+})
+
+onMounted(() => {
+  // Récupérer l'ID du produit depuis l'URL
+  const productId = route.params.id
+  if (productId) {
+    fetchProductById(productId)
+  } else {
+    error.value = "ID de produit non spécifié"
+    loading.value = false
+  }
+})
+
+// Récupérer les détails du produit en fonction de l'ID
+const fetchProductById = async (productId) => {
+  try {
+    loading.value = true
+    error.value = null
+    
+    // Récupérer le produit par son ID
+    const { data, error: fetchError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', productId)
+      .single()
+    
+    if (fetchError) {
+      throw fetchError
+    }
+    
+    if (!data) {
+      error.value = "Produit non trouvé"
+      loading.value = false
+      return
+    }
+    
+    // Traitement de l'image principale
+    let mainImageUrl = data.image_url
+    if (mainImageUrl && !mainImageUrl.startsWith('http')) {
+      const { data: urlData } = await supabase.storage
+        .from('test2')
+        .getPublicUrl(mainImageUrl)
+      
+      mainImageUrl = urlData?.publicUrl || null
+    }
+    
+    // Créer l'objet produit
+    product.value = {
+      ...data,
+      image_url: mainImageUrl,
+      colors: ['#30606e', '#1a1a2e', '#4c4c6d'] // Couleurs par défaut ou à récupérer d'une autre table
+    }
+    
+    // Initialiser la couleur par défaut
+    if (product.value.colors && product.value.colors.length > 0) {
+      selectedColor.value = product.value.colors[0]
+    }
+    
+    // Charger les images additionnelles (exemple, remplacer par votre logique)
+    // Cette partie est un exemple - à adapter selon votre structure de données
+    loadAdditionalImages(productId)
+    
+    // Charger les produits similaires
+    fetchSimilarProducts(productId)
+    
+    loading.value = false
+  } catch (err) {
+    console.error('Erreur lors du chargement du produit:', err)
+    error.value = "Impossible de charger les détails du produit"
+    loading.value = false
+  }
+}
+
+// Charger des images additionnelles (exemple)
+const loadAdditionalImages = async (productId) => {
+  // Exemple de logique - remplacer par votre propre implémentation
+  // Ici on pourrait avoir une autre table avec les images additionnelles
+  // Ou utiliser une convention de nommage pour les images dans le bucket
+  additionalImages.value = [] // Réinitialiser
+
+  // Simuler des images additionnelles - à remplacer par votre logique réelle
+  /*
+  try {
+    const { data, error: listError } = await supabase.storage
+      .from('test2')
+      .list(`product-${productId}`)
+    
+    if (!listError && data) {
+      // Traitement des images trouvées
+      const imageUrls = await Promise.all(data.map(async (file) => {
+        const { data: urlData } = await supabase.storage
+          .from('test2')
+          .getPublicUrl(`product-${productId}/${file.name}`)
+        return urlData?.publicUrl
+      }))
+      
+      additionalImages.value = imageUrls.filter(url => url)
+    }
+  } catch (err) {
+    console.error('Erreur lors du chargement des images additionnelles:', err)
+  }
+  */
+}
+
+// Charger des produits similaires
+const fetchSimilarProducts = async (currentProductId) => {
+  try {
+    // Exemple: récupérer 4 autres produits
+    const { data, error: fetchError } = await supabase
+      .from('products')
+      .select('id, name, price, image_url')
+      .neq('id', currentProductId) // Exclure le produit actuel
+      .limit(4)
+    
+    if (fetchError) {
+      console.error('Erreur lors du chargement des produits similaires:', fetchError)
+      return
+    }
+    
+    // Traiter les images des produits similaires
+    const productsWithImages = await Promise.all(data.map(async (prod) => {
+      let imageUrl = prod.image_url
+      if (imageUrl && !imageUrl.startsWith('http')) {
+        const { data: urlData } = await supabase.storage
+          .from('test2')
+          .getPublicUrl(imageUrl)
+        
+        imageUrl = urlData?.publicUrl || null
+      }
+      
       return {
-        product: {
-          name: "LEC CHAMP - PIECE OF HISTORY 2",
-          price: 29.00,
-          images: [image1, image2, image3, image4],
-          isPreorder: true,
-          description: "Le t-shirt LEC CHAMP - Place of History 2 est en précommande. Les livraisons débuteront à partir de fin avril."
-        },
-        sizes: ['XS', 'S', 'M', 'L', 'XL'],
-        availableSizes: ['S', 'M', 'L'],
-        selectedSize: '',
-        currentImageIndex: 0,
-        quantity: 1,
-        showLightbox: false,
-        showArrows: false,
-        isHovered: false,
-        isAddingToCart: false,
-        isKeyboardNavigating: false
-      };
-    },
-    computed: {
-      currentImage(): string {
-        return this.product.images[this.currentImageIndex];
+        ...prod,
+        image_url: imageUrl
       }
-    },
-    methods: {
-      selectSize(size: string) {
-        if (this.availableSizes.includes(size)) {
-          this.selectedSize = size;
-        }
-      },
-      increaseQuantity() {
-        if (this.quantity < 10) this.quantity++;
-      },
-      decreaseQuantity() {
-        if (this.quantity > 1) this.quantity--;
-      },
-      nextImage() {
-        this.currentImageIndex = (this.currentImageIndex + 1) % this.product.images.length;
-      },
-      prevImage() {
-        this.currentImageIndex = (this.currentImageIndex - 1 + this.product.images.length) % this.product.images.length;
-      },
-      async addToCart() {
-        if (!this.selectedSize) {
-          alert("Veuillez sélectionner une taille disponible");
-          return;
-        }
-  
-        this.isAddingToCart = true;
-        await new Promise(resolve => setTimeout(resolve, 800));
-        alert(`Ajouté au panier : ${this.product.name} - Taille ${this.selectedSize} (x${this.quantity})`);
-        this.isAddingToCart = false;
-      },
-      openLightbox() {
-        this.showLightbox = true;
-        document.body.style.overflow = 'hidden';
-      },
-      closeLightbox() {
-        this.showLightbox = false;
-        document.body.style.overflow = '';
-      },
-      handleKeyDown(event: KeyboardEvent) {
-        if (['ArrowLeft', 'ArrowRight', 'Escape'].includes(event.key)) {
-          event.preventDefault();
-        }
-  
-        switch(event.key) {
-          case 'ArrowLeft':
-            this.prevImage();
-            break;
-          case 'ArrowRight':
-            this.nextImage();
-            break;
-          case 'Escape':
-            if (this.showLightbox) this.closeLightbox();
-            break;
-        }
-      }
-    },
-    mounted() {
-      (this.$refs.pageContainer as HTMLElement)?.focus();
-      window.addEventListener('keydown', this.handleKeyDown);
-    },
-    unmounted() {
-      window.removeEventListener('keydown', this.handleKeyDown);
-    }
-  });
-  </script>
-  
-  <style scoped>
-  .product-page {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-    outline: none;
+    }))
+    
+    similarProducts.value = productsWithImages
+  } catch (err) {
+    console.error('Erreur:', err)
   }
-  
-  .product-container {
-    display: flex;
-    gap: 40px;
+}
+
+// Changer l'image principale (pour les miniatures)
+const setMainImage = (imageUrl) => {
+  if (product.value) {
+    product.value.image_url = imageUrl
   }
-  
-  .gallery-column {
-    flex: 1;
-    max-width: 50%;
+}
+
+// Fonctions pour la gestion de la quantité
+const incrementQuantity = () => {
+  quantity.value++
+}
+
+const decrementQuantity = () => {
+  if (quantity.value > 1) {
+    quantity.value--
   }
-  
-  .main-image-container {
-    position: relative;
-    margin-bottom: 20px;
-    cursor: zoom-in;
-  }
-  
-  .main-image {
-    width: 100%;
-    max-height: 600px;
-    object-fit: contain;
-  }
-  
-  .nav-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    border: none;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    font-size: 24px;
-    cursor: pointer;
-    z-index: 10;
-    transition: all 0.3s;
-  }
-  
-  .nav-arrow.left { left: 15px; }
-  .nav-arrow.right { right: 15px; }
-  
-  .nav-arrow:hover,
-  .nav-arrow:focus {
-    background: rgba(0, 0, 0, 0.9);
-    transform: translateY(-50%) scale(1.1);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.5);
-  }
-  
-  .thumbnails {
-    display: flex;
-    gap: 10px;
-    overflow-x: auto;
-    padding-bottom: 10px;
-  }
-  
-  .thumbnails img {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    cursor: pointer;
-    border: 2px solid transparent;
-    transition: all 0.2s;
-  }
-  
-  .thumbnails img:hover,
-  .thumbnails img:focus {
-    border-color: #ccc;
-  }
-  
-  .thumbnails img.active {
-    border-color: #000;
-  }
-  
-  .info-column {
-    flex: 1;
-    max-width: 50%;
-    padding: 0 20px;
-  }
-  
-  .price-box {
-    margin: 20px 0;
-    display: flex;
-    align-items: center;
-  }
-  
-  .price {
-    font-size: 24px;
-    font-weight: bold;
-  }
-  
-  .availability {
-    margin-left: 15px;
-    padding: 4px 8px;
-    background: #f39c12;
-    color: white;
-    border-radius: 4px;
-    font-size: 14px;
-  }
-  
-  .size-selector {
-    margin: 30px 0;
-  }
-  
-  .size-options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin-top: 10px;
-  }
-  
-  .size-options button {
-    padding: 10px 15px;
-    border: 1px solid #ddd;
-    background: #fff;
-    cursor: pointer;
-    min-width: 50px;
-    transition: all 0.2s;
-  }
-  
-  .size-options button.selected {
-    background: #000;
-    color: #fff;
-    border-color: #000;
-  }
-  
-  .size-options button.unavailable {
-    opacity: 0.5;
-    cursor: not-allowed;
-    text-decoration: line-through;
-  }
-  
-  .size-options button:not(.unavailable):hover {
-    border-color: #000;
-  }
-  
-  .quantity-selector {
-    margin: 30px 0;
-  }
-  
-  .quantity-controls {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-  }
-  
-  .quantity-controls button {
-    width: 40px;
-    height: 40px;
-    font-size: 18px;
-    background: #f5f5f5;
-    border: 1px solid #ddd;
-    cursor: pointer;
-  }
-  
-  .quantity-controls input {
-    width: 60px;
-    height: 38px;
-    text-align: center;
-    border: 1px solid #ddd;
-    border-left: none;
-    border-right: none;
-    font-size: 16px;
-  }
-  
-  .add-to-cart {
-    width: 100%;
-    padding: 15px;
-    background: #000;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    font-weight: bold;
-    margin: 30px 0;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
-  }
-  
-  .add-to-cart.hovered {
-    background: #333;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-  }
-  
-  .add-to-cart:active {
-    transform: translateY(0);
-  }
-  
-  .add-to-cart::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 5px;
-    height: 5px;
-    background: rgba(255,255,255,0.5);
-    opacity: 0;
-    border-radius: 100%;
-    transform: scale(1, 1) translate(-50%, -50%);
-    transform-origin: 50% 50%;
-  }
-  
-  .add-to-cart:focus:not(:active)::after {
-    animation: ripple 0.6s ease-out;
-  }
-  
-  @keyframes ripple {
-    0% {
-      transform: scale(0, 0);
-      opacity: 0.5;
-    }
-    100% {
-      transform: scale(20, 20);
-      opacity: 0;
-    }
-  }
-  
-  .product-description {
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px solid #eee;
-  }
-  
-  .lightbox {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.9);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-  }
-  
-  .lightbox-content {
-    position: relative;
-    max-width: 90%;
-    max-height: 90%;
-  }
-  
-  .lightbox-image {
-    max-width: 100%;
-    max-height: 80vh;
-    object-fit: contain;
-  }
-  
-  .close-btn {
-    position: absolute;
-    top: -50px;
-    right: 0;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 30px;
-    cursor: pointer;
-  }
-  
-  .lightbox-arrow {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    background: rgba(255,255,255,0.3);
-    color: white;
-    border: none;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    font-size: 30px;
-    cursor: pointer;
-    z-index: 10;
-  }
-  
-  .lightbox-arrow.left { left: 20px; }
-  .lightbox-arrow.right { right: 20px; }
-  
-  .lightbox-arrow:hover,
-  .lightbox-arrow:focus {
-    background: rgba(255,255,255,0.5);
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
-  }
-  
-  @media (max-width: 768px) {
-    .product-container {
-      flex-direction: column;
+}
+
+// Ajouter au panier
+const addToCart = () => {
+  if (product.value) {
+    const cartItem = {
+      ...product.value,
+      quantity: quantity.value,
+      selectedColor: selectedColor.value
     }
     
-    .gallery-column,
-    .info-column {
-      max-width: 100%;
-    }
+    cart.addItem(cartItem)
     
-    .nav-arrow {
-      width: 30px;
-      height: 30px;
-      font-size: 18px;
-    }
+    // Optionnel: Afficher une confirmation
+    alert(`${product.value.name} ajouté au panier !`)
   }
-  </style>
+}
+
+// Basculer favori
+const toggleFavorite = () => {
+  isFavorite.value = !isFavorite.value
+  // Logique pour sauvegarder dans les favoris (localStorage, base de données, etc.)
+}
+
+// Obtenir le nom de la couleur à partir du code hexadécimal
+const getColorName = (hexColor) => {
+  // Mapper les codes hexadécimaux à des noms de couleurs (exemple)
+  const colorMap = {
+    '#30606e': 'Bleu marine',
+    '#1a1a2e': 'Bleu nuit',
+    '#4c4c6d': 'Violet foncé',
+    '#ffffff': 'Blanc',
+    '#eaeaea': 'Gris clair',
+    '#c9d1d3': 'Gris argenté'
+  }
+  
+  return colorMap[hexColor] || hexColor
+}
+</script>
+
+<style scoped>
+.product-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.loader {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+}
+
+.back-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s;
+}
+
+.back-button:hover {
+  background-color: #2980b9;
+}
+
+.product-detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.product-gallery {
+  flex: 1;
+  min-width: 300px;
+}
+
+.product-main-image {
+  position: relative;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.main-image {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.promo-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #e74c3c;
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.product-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.thumbnail {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.3s;
+}
+
+.thumbnail:hover {
+  border-color: #3498db;
+}
+
+.thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-info {
+  flex: 1;
+  min-width: 300px;
+}
+
+.product-title {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+  color: #2c3e50;
+}
+
+.product-price-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.product-price {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.product-original-price {
+  font-size: 1.2rem;
+  text-decoration: line-through;
+  color: #7f8c8d;
+}
+
+.product-description {
+  margin-bottom: 2rem;
+  line-height: 1.6;
+  color: #34495e;
+}
+
+.product-colors {
+  margin-bottom: 2rem;
+}
+
+.product-colors h3, .product-quantity h3 {
+  font-size: 1.2rem;
+  margin-bottom: 0.75rem;
+  color: #2c3e50;
+}
+
+.color-options {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.color-option {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.color-option:hover {
+  transform: scale(1.1);
+}
+
+.color-option.active {
+  border-color: #2c3e50;
+}
+
+.selected-color-text {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+.color-name {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.product-quantity {
+  margin-bottom: 2rem;
+}
+
+.quantity-selector {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.quantity-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: background-color 0.2s;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background-color: #e9ecef;
+}
+
+.quantity-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantity-value {
+  font-size: 1.2rem;
+  min-width: 20px;
+  text-align: center;
+}
+
+.product-actions {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.add-to-cart-btn {
+  flex: 1;
+  background-color: #4a919e;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #4a919e;
+}
+
+.favorite-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.favorite-btn:hover {
+  background-color: #e9ecef;
+}
+
+.material-icons {
+  font-size: 1.2rem;
+}
+
+.product-meta {
+  font-size: 0.9rem;
+  color: #7f8c8d;
+}
+
+/* Section produits similaires */
+.similar-products {
+  margin-top: 4rem;
+}
+
+.similar-products h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #2c3e50;
+}
+
+.similar-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.similar-product-card {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.similar-product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+}
+
+.similar-product-card a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.similar-product-image {
+  height: 150px;
+  overflow: hidden;
+}
+
+.similar-product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.similar-product-card:hover .similar-product-image img {
+  transform: scale(1.05);
+}
+
+.similar-product-info {
+  padding: 1rem;
+}
+
+.similar-product-info h3 {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.similar-product-price {
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .product-detail {
+    flex-direction: column;
+  }
+  
+  .similar-products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+}
+</style>

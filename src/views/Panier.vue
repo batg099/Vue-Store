@@ -34,13 +34,13 @@
 
     <div v-else class="empty-cart">
       <p>Votre panier est vide.</p>
-      <router-link to="/products" class="continue-shopping">Continuer vos achats</router-link>
+      <router-link to="/" class="continue-shopping">Continuer vos achats</router-link>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
+import { computed} from 'vue'
 import { useCartStore } from "../stores/carte"
 
 const cart = useCartStore()

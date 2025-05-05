@@ -2,21 +2,23 @@
   <div class="product-section">
     <div class="product-grid">
       <div
-        v-for="product in limitedProducts"
+        v-for="product in products.slice(0, 3)"
         :key="product.id"
         class="product-card"
       >
         <div class="product-image-container">
-          <img :src="product.image" :alt="product.name" class="product-image" />
+          <img :src="product.image_url" :alt="product.name" class="product-image" />
           <div class="product-overlay">
-            <button class="quick-view-btn">Aperçu rapide</button>
+            <RouterLink :to="'/product/' + product.id">
+              <button class="quick-view-btn">Aperçu rapide</button>
+            </RouterLink>
           </div>
         </div>
         <div class="product-info">
           <h3 class="product-name">{{ product.name }}</h3>
           <div class="product-meta">
             <p class="product-price">{{ product.price }} €</p>
-            <div class="product-colors">
+            <div class="product-colors" v-if="product.colors">
               <span
                 v-for="(color, index) in product.colors"
                 :key="index"
@@ -32,6 +34,8 @@
         </div>
       </div>
     </div>
+    <div v-if="loading" class="loading">Chargement des produits...</div>
+    <div v-if="error" class="error">{{ error }}</div>
   </div>
 </template>
 
@@ -39,70 +43,68 @@
 import { ref, onMounted } from 'vue'
 import { supabase } from '../../supabase'
 import { useCartStore } from '../../stores/carte'
+import { RouterLink } from 'vue-router'
 
 const cart = useCartStore()
+const products = ref([])
+const loading = ref(true)
+const error = ref(null)
 
-const productImages = ref([null, null, null])
-const limitedProducts = ref([])
-
-const bucketName = 'test2'
-const imageNames = ['1.png', '2.png', '3.png']
-
+// Charger les produits depuis la table Supabase "products"
 onMounted(async () => {
-  await loadAllProductImages()
+  await fetchProducts()
 })
 
-const getImageUrl = async (imageName) => {
+const fetchProducts = async () => {
   try {
-    const { data, error } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(imageName)
-
-    if (error) {
-      console.error(`Erreur pour ${imageName} :`, error)
-      return null
+    loading.value = true
+    
+    // Récupérer les produits depuis la table Supabase "products"
+    const { data, error: fetchError } = await supabase
+      .from('products')
+      .select('id, name, price, description, image_url, slug, is_promo')
+      .order('created_at', { ascending: false })
+    
+    if (fetchError) {
+      throw fetchError
     }
-
-    return data?.publicUrl ?? null
+    
+    // Transformer les données et charger les images correctement
+    const productsWithImages = await Promise.all(data.map(async product => {
+      // Si image_url existe et semble être un chemin de fichier (et non une URL complète)
+      let imageUrl = product.image_url;
+      if (product.image_url && !product.image_url.startsWith('http')) {
+        // Récupérer l'URL publique depuis le bucket Supabase
+        const { data: urlData } = await supabase.storage
+          .from('test2')
+          .getPublicUrl(product.image_url);
+        
+        imageUrl = urlData?.publicUrl || null;
+      }
+      
+      return {
+        id: product.id,
+        name: product.name, // Utilisation du nom depuis la table products
+        price: product.price,
+        image_url: imageUrl,
+        image: imageUrl, // Pour la compatibilité avec le code existant
+        description: product.description,
+        slug: product.slug,
+        is_promo: product.is_promo,
+        // On peut ajouter un tableau de couleurs par défaut ou le récupérer d'une autre table si nécessaire
+        colors: ['#30606e', '#1a1a2e', '#4c4c6d']
+      };
+    }));
+    
+    // Assigner le résultat à products.value
+    products.value = productsWithImages;
+    
+    loading.value = false
   } catch (err) {
-    console.error(`Exception URL ${imageName} :`, err)
-    return null
+    console.error('Erreur lors du chargement des produits:', err)
+    error.value = 'Impossible de charger les produits. Veuillez réessayer plus tard.'
+    loading.value = false
   }
-}
-
-const loadAllProductImages = async () => {
-  const urls = await Promise.all(
-    imageNames.map((name, index) =>
-      getImageUrl(name).then((url) => {
-        productImages.value[index] = url
-        return url
-      })
-    )
-  )
-
-  limitedProducts.value = [
-    {
-      id: 1,
-      name: 'Blazer Classique',
-      price: 149.99,
-      image: urls[0],
-      colors: ['#30606e', '#1a1a2e', '#4c4c6d']
-    },
-    {
-      id: 2,
-      name: 'Chemise Élégance',
-      price: 79.99,
-      image: urls[1],
-      colors: ['#ffffff', '#eaeaea', '#c9d1d3']
-    },
-    {
-      id: 3,
-      name: 'Pantalon Premium',
-      price: 99.99,
-      image: urls[2],
-      colors: ['#1a1a2e', '#30606e']
-    }
-  ]
 }
 
 const addToCart = (product) => {

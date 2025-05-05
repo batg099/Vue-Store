@@ -2,10 +2,8 @@
 import { auth } from "../firebase"
 import { onMounted, ref } from 'vue';
 import { onAuthStateChanged } from "firebase/auth";
-import { getCurrentUser } from "vuefire";
 
 import NavBar from "../components/Navbar.vue";
-import first from "../components/First.vue"
 
 interface UserData {
   displayName: string | null;

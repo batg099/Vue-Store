@@ -10,13 +10,13 @@ import contact from '../views/Contact.vue'
 import A_propos from '../views/about.vue';
 import Cgv from '../views/Cgv.vue';
 import Confidentialite from '../views/Confidentialite.vue';
-import Collection from '../views/Collection.vue';
+import collection from  '../views/Collection.vue';
 
 const routes = [
   {
     path: '/',
     name: 'Home',
-    component: Home
+    component: First
   },
   {
     path: '/signing',
@@ -29,12 +29,7 @@ const routes = [
     component: Logging
   },
   {
-    path: '/first',
-    name: 'first',
-    component: First
-  },
-  {
-    path: '/product',
+    path: '/product/:id',
     name: 'product',
     component: Product
   },
@@ -73,8 +68,9 @@ const routes = [
   {
     path: '/collection',
     name: 'collection',
-    component: Collection
+    component: collection
   }
+
 
 ];
 

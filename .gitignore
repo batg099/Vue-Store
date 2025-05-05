@@ -26,3 +26,4 @@ dist-ssr
 #supabase 
 supabase.ts
 firebase.ts
+.env

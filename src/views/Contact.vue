@@ -1,107 +1,127 @@
 <template>
-    <div class="contact-page">
-      <h1 class="contact-title">Contactez-nous</h1>
-      <p class="contact-subtitle">Nous sommes là pour répondre à vos questions et vous aider.</p>
-  
-      <div class="contact-container">
-        <div class="contact-form">
-          <h2 class="form-title">Envoyez-nous un message</h2>
-          <form @submit.prevent="handleSubmit">
-            <div class="form-group">
-              <label for="name">Nom</label>
-              <input type="text" id="name" v-model="formData.name" required>
-            </div>
-            <div class="form-group">
-              <label for="email">Email</label>
-              <input type="email" id="email" v-model="formData.email" required>
-            </div>
-            <div class="form-group">
-              <label for="subject">Sujet</label>
-              <input type="text" id="subject" v-model="formData.subject">
-            </div>
-            <div class="form-group">
-              <label for="message">Message</label>
-              <textarea id="message" v-model="formData.message" rows="5" required></textarea>
-            </div>
-            <button type="submit" class="submit-btn" :disabled="isSubmitting">
-              <span v-if="isSubmitting">Envoi en cours...</span>
-              <span v-else>Envoyer le message</span>
-            </button>
-            <div v-if="submissionSuccess" class="success-message">
-              Votre message a été envoyé avec succès !
-            </div>
-            <div v-if="submissionError" class="error-message">
-              Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.
-            </div>
-          </form>
-        </div>
-  
-        <div class="contact-info">
-          <h2 class="info-title">Nos informations</h2>
-          <p class="info-address">
-            123 Rue de l'Élégance,<br>
-            75001 Paris, France
-          </p>
-          <p class="info-phone">Téléphone: +33 1 23 45 67 89</p>
-          <p class="info-email">Email: contact@elegancemoderne.com</p>
-          <div class="social-links">
-            <a href="#" target="_blank" class="social-icon">
-              <span class="material-icons">facebook</span>
-            </a>
-            <a href="#" target="_blank" class="social-icon">
-              <span class="material-icons">twitter</span>
-            </a>
-            <a href="#" target="_blank" class="social-icon">
-              <span class="material-icons">instagram</span>
-            </a>
+  <div class="contact-page">
+    <h1 class="contact-title">Contactez-nous</h1>
+    <p class="contact-subtitle">Nous sommes là pour répondre à vos questions et vous aider.</p>
+
+    <div class="contact-container">
+      <div class="contact-form">
+        <h2 class="form-title">Envoyez-nous un message</h2>
+        <form @submit.prevent="handleSubmit">
+          <div class="form-group">
+            <label for="name">Nom</label>
+            <input type="text" id="name" v-model="formData.name" required>
           </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" v-model="formData.email" required>
+          </div>
+          <div class="form-group">
+            <label for="subject">Sujet</label>
+            <input type="text" id="subject" v-model="formData.subject">
+          </div>
+          <div class="form-group">
+            <label for="message">Message</label>
+            <textarea id="message" v-model="formData.message" rows="5" required></textarea>
+          </div>
+          <button type="submit" class="submit-btn" :disabled="isSubmitting">
+            <span v-if="isSubmitting">Envoi en cours...</span>
+            <span v-else>Envoyer le message</span>
+          </button>
+          <div v-if="submissionSuccess" class="success-message">
+            Votre message a été envoyé avec succès !
+          </div>
+          <div v-if="submissionError" class="error-message">
+            Une erreur est survenue lors de l'envoi du message. Veuillez réessayer.
+          </div>
+        </form>
+      </div>
+
+      <div class="contact-info">
+        <h2 class="info-title">Nos informations</h2>
+        <p class="info-address">
+          123 Rue de l'Élégance,<br>
+          75001 Paris, France
+        </p>
+        <p class="info-phone">Téléphone: +33 1 23 45 67 89</p>
+        <p class="info-email">Email: contact@elegancemoderne.com</p>
+        <div class="social-links">
+          <a href="#" target="_blank" class="social-icon">
+            <span class="material-icons">facebook</span>
+          </a>
+          <a href="#" target="_blank" class="social-icon">
+            <span class="material-icons">twitter</span>
+          </a>
+          <a href="#" target="_blank" class="social-icon">
+            <span class="material-icons">instagram</span>
+          </a>
         </div>
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue';
-  import { addDoc } from 'firebase/firestore';
-  import { messagesCollection } from '../firebase'; // Assure-toi que le chemin est correct
-  
-  const formData = ref({
-    name: '',
-    email: '',
-    subject: '',
-    message: ''
-  });
-  
-  const isSubmitting = ref(false);
-  const submissionSuccess = ref(false);
-  const submissionError = ref(false);
-  
-  const handleSubmit = async () => {
-    isSubmitting.value = true;
-    submissionSuccess.value = false;
-    submissionError.value = false;
-  
-    try {
-      await addDoc(messagesCollection, {
-        name: formData.value.name,
-        email: formData.value.email,
-        subject: formData.value.subject,
-        message: formData.value.message,
-        timestamp: new Date() // Ajouter un horodatage
-      });
-      submissionSuccess.value = true;
-      formData.value = { name: '', email: '', subject: '', message: '' }; // Réinitialiser le formulaire
-    } catch (error) {
-      console.error("Erreur lors de l'envoi du message à Firebase:", error);
-      submissionError.value = true;
-    } finally {
-      isSubmitting.value = false;
+  </div>
+</template>
+
+<script setup>
+import { ref } from 'vue';
+// --- SUPABASE IMPORTS ---
+// Assurez-vous que ce chemin correspond à l'emplacement de votre client Supabase initialisé
+import { supabase } from '../supabase';
+// --- FIN SUPABASE IMPORTS ---
+
+const formData = ref({
+  name: '',
+  email: '',
+  subject: '',
+  message: ''
+});
+
+const isSubmitting = ref(false);
+const submissionSuccess = ref(false);
+const submissionError = ref(false);
+
+const handleSubmit = async () => {
+  isSubmitting.value = true;
+  submissionSuccess.value = false;
+  submissionError.value = false;
+
+  try {
+    const { data, error } = await supabase
+      .from('messages') // Nom de votre table dans Supabase
+      .insert([
+        {
+          name: formData.value.name,
+          email: formData.value.email,
+          subject: formData.value.subject,
+          message: formData.value.message,
+          // --- MODIFICATION ICI : Changer 'timestamp' en 'created_at' ---
+          created_at: new Date().toISOString() // Assurez-vous que ce nom correspond à la colonne dans Supabase
+          // Ou, si vous avez défini la colonne created_at avec DEFAULT now(),
+          // vous pouvez même OMETTRE cette ligne et Supabase la remplira automatiquement.
+          // Mais laisser created_at: new Date().toISOString() fonctionne aussi.
+          // -------------------------------------------------------------
+        }
+      ]);
+
+    if (error) {
+      throw error;
     }
-  };
-  </script>
-  
-  <style scoped>
- .contact-page {
+
+    console.log('Message envoyé avec succès à Supabase', data);
+    submissionSuccess.value = true;
+    formData.value = { name: '', email: '', subject: '', message: '' };
+
+  } catch (error) {
+    console.error("Erreur lors de l'envoi du message à Supabase:", error); // Cette ligne affichera l'erreur détaillée maintenant
+    submissionError.value = true;
+  } finally {
+    isSubmitting.value = false;
+  }
+};
+</script>
+
+<style scoped>
+/* Copiez ici le code CSS de votre page contact précédente */
+/* Assurez-vous que les variables CSS (--primary-color, etc.) sont définies globalement ou importées */
+.contact-page {
   padding: 60px 20px;
   max-width: 1200px;
   margin: 20px auto;
@@ -251,4 +271,4 @@ textarea {
     margin-top: 30px;
   }
 }
-  </style>
+</style>

@@ -16,7 +16,7 @@ import { firebaseApp } from "./firebase.ts";
 
 // Importer PrimeVue et le thème Aura
 import PrimeVue from 'primevue/config'
-import Aura from '@primeuix/themes/aura'  // Si tu utilises le thème Aura depuis PrimeUX
+//import Aura from '@primeuix/themes/aura'  // Si tu utilises le thème Aura depuis PrimeUX
 
 import { createPinia } from 'pinia'
 import { useCartStore } from './stores/carte.ts'
@@ -35,9 +35,9 @@ const cartStore = useCartStore()
 cartStore.loadFromLocalStorage()
 
 // Utiliser PrimeVue et appliquer le thème Aura
-app.use(PrimeVue, {
-  theme: Aura  // Assure-toi que le thème est correctement défini
-})
+app.use(PrimeVue,  // Assure-toi que le thème est correctement défini
+  )
+  
 app.use(ToastService);  // Enregistrement du ToastService
 
 // Monter l'application
